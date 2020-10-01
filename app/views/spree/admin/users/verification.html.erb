@@ -1,0 +1,37 @@
+<%= render partial: 'spree/admin/users/sidebar', locals: { current: :verification } %>
+
+<% content_for :page_actions do %>
+  <% unless @user.try(:status_verified?) %>
+    <%= button_link_to Spree.t(:verify), spree.verify_admin_user_path(@user), class: "btn-success", method: :post %>
+    <%= button_link_to Spree.t(:reject), spree.reject_admin_user_path(@user), class: "btn btn-danger", method: :post %>
+  <% end %>
+<% end %>
+
+<% content_for :page_title do %>
+  <%= link_to @user.email, spree.edit_admin_user_url(@user) %> /
+  <%= Spree.t(:"admin.user.verification") %>
+<% end %>
+
+<div>
+  <div class="form-group">
+    <p>
+      <% if @user.status_verified? %>
+        <span class="badge badge-success"><%= @user.status %></span>
+      <% end %>
+
+      <% if @user.status_rejected? %>
+        <span class="badge badge-danger"><%= @user.status %></span>
+      <% end %>
+
+      <% if @user.status_pending? %>
+        <span class="badge badge-warning"><%= @user.status %></span>
+      <% end %>
+    </p>
+
+    <% if @user.id_verification_image.present? %>
+      <%= image_tag @user.id_verification_image.get_image_url, class: "img-fluid" %>
+    <% else %>
+      No image
+    <% end %>
+  </div>
+</div>
