@@ -1,6 +1,9 @@
 # SpreeIdVerification
 
-Introduction goes here.
+ - library introduce user verification on sign up form. 
+ - admin should verify user to change status to `verified`
+ - spree developer could decide how to use status column in terms of accessing to specific endpoints of Spree
+
 
 ## Installation
 
