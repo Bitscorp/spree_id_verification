@@ -8,3 +8,7 @@ en:
     verification_mailer:
       welcome_email:
         subject: Successful registration
+      verified_email:
+        subject: Successful verification
+      rejected_email:
+        subject: Verification rejected

@@ -4,7 +4,6 @@ module SpreeIdVerification
     class IdVerificationImage < ::Spree::Base
       self.table_name = 'spree_id_verification_images'
 
-      # include ::Spree::Asset::Support::ActiveStorage
       include Rails.application.routes.url_helpers
 
       has_one_attached :attachment

@@ -1,58 +1,68 @@
 require 'spec_helper'
 
+EMAILS = {
+  welcome_email: "successfully registered",
+  rejected_email: "is rejected",
+  verified_email: "successfully verified"
+}
+
+EMAILS.each do |key, value|
+  RSpec.shared_examples key do
+    it "has #{key} specific text in body" do
+      expect(body).to include(value)
+    end
+    it "has user's email in body" do
+      expect(body).to include("Hi")
+      expect(body).to include(user.email)
+    end
+  end
+end
+
+RSpec.shared_examples "verification mailer email" do |email_name|
+  it 'is sent from current store email address' do
+    expect(email.from).to eq([Spree::Store.current.mail_from_address])
+  end
+
+  it 'is sent to users email address' do
+    expect(email.to).to eq([user.email])
+  end
+
+  it 'subject contains store name' do
+    expect(email.subject).to include Spree::Store.current.name
+  end
+
+  it "subject contains #{email_name} specific text" do
+    expect(email.subject).to include Spree.t("verification_mailer.#{email_name}.subject")
+  end
+
+  context "text part of #{email_name}" do
+    include_examples email_name do
+      let(:body) { email.text_part.body.to_s }
+    end
+  end
+
+  context "html part of #{email_name}" do
+    include_examples email_name do
+      let(:body) { email.html_part.body.to_s }
+    end
+  end
+end
+
 describe Spree::VerificationMailer, type: :mailer do
-  let(:store) { create(:store) }
+  before { create(:store) }
   let(:user) { create(:user) }
+  EMAILS.each do |key, value|
+    context key.to_s.humanize do
+      let!(:email) { Spree::VerificationMailer.with(user: user).send(key) }
 
-  context ':from not set explicitly' do
-    it 'falls back to spree config' do
-      message = Spree::VerificationMailer.with(user).welcome_email
-      expect(message.from).to eq([Spree::Store.current.mail_from_address])
-    end
-  end
-
-  it "doesn't aggressively escape double quotes in confirmation body" do
-    message = Spree::VerificationMailer.with(user).welcome_email
-    expect(message.body).not_to include('&quot;')
-  end
-
-  context 'welcome email' do
-    let!(:welcome_email) { Spree::VerificationMailer.with(user).welcome_email }
-
-    specify do
-      # expect(welcome_email.body).not_to include("text")
-      expect(welcome_email).to have_body_text("Hi")
-      expect(welcome_email).to have_body_text(user.email)
-    end
-
-    it 'is sent from current store email address' do
-      welcome_email = Spree::VerificationMailer.with(user).welcome_email
-      expect(welcome_email.from).to have_content(Spree::Store.current.mail_from_address)
-    end
-
-    it 'is sent to users email address' do
-      welcome_email = Spree::VerificationMailer.with(user).welcome_email
-      expect(welcome_email.to).to have_content(user.email)
-    end
-
-    it 'subject contains some text' do
-      welcome_email = Spree::VerificationMailer.with(user).welcome_email
-      expect(welcome_email.subject).to have_content(Spree::Store.current.name)
-      expect(welcome_email.subject).to have_content(Spree.t('verification_mailer.welcome_email.subject'))
-    end
-
-    it 'body users email' do
-      welcome_email = Spree::VerificationMailer.with(user).welcome_email
-      # TODO: check what is parts
-      expect(welcome_email.body.parts.first).to have_text(vendors_item.product.name)
-      expect(welcome_email.body.parts.last).to have_text(vendors_item.product.name)
+      it_behaves_like "verification mailer email", key
     end
   end
 
   context 'with preference :send_core_emails set to false' do
     it 'sends no email' do
       Spree::Config.set(:send_core_emails, false)
-      message = Spree::VerificationMailer.with(user).welcome_email
+      message = Spree::VerificationMailer.with(user: user).welcome_email
       expect(message.body).to be_blank
     end
   end

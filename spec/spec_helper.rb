@@ -11,9 +11,11 @@ require 'database_cleaner'
 Dir[File.join(File.dirname(__FILE__), 'support/**/*.rb')].sort.each { |f| require f }
 
 require 'spree/testing_support/factories'
+require 'spree/testing_support/preferences'
 
 RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
+  config.include Spree::TestingSupport::Preferences
 
   # Clean out the database state before the tests run
   config.before(:suite) do
@@ -24,6 +26,11 @@ RSpec.configure do |config|
   config.before do
     DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.start
+    begin
+      Rails.cache.clear
+      reset_spree_preferences
+    rescue Errno::ENOTEMPTY
+    end
   end
 
   config.append_after do

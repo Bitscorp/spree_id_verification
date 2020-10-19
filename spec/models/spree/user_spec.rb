@@ -40,14 +40,14 @@ describe Spree::User, type: :model do
   end
 
   describe 'id verification with image' do
-    let(:fixture) { open(Rails.root.join('..', '..', 'spec', 'fixtures', 'example.png')) }
+    # use fixture_file_upload to make image attachable
+    let(:fixture) { fixture_file_upload File.open(File.expand_path('../../fixtures/example.png', __dir__)) }
 
     it 'should allow to attach id image for verification' do
       expect(user.id_verification_image).not_to be
-
-      image = SpreeIdVerification::Spree::IdVerificationImage.new
-      image.attachment.attach(io: fixture, filename: "example.png", content_type: 'image/png')
-      user.id_verification_image = image
+      # because id_verification_image= is overriden in user_decorator
+      user.id_verification_image = fixture
+      expect(user.id_verification_image.attachment).to be_attached
       user.save!
 
       expect(user.persisted?).to eq(true)

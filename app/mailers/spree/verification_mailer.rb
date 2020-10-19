@@ -16,10 +16,20 @@ module Spree
 
     def verified_email
       # you are verified
+      @user = params[:user]
+      @user_email = @user.email
+      subject = "#{Spree::Store.current.name} #{Spree.t('verification_mailer.verified_email.subject')}"
+
+      mail(to: @user_email, from: from_address, subject: subject)
     end
 
     def rejected_email
       # you are rejected
+      @user = params[:user]
+      @user_email = @user.email
+      subject = "#{Spree::Store.current.name} #{Spree.t('verification_mailer.rejected_email.subject')}"
+
+      mail(to: @user_email, from: from_address, subject: subject)
     end
   end
 end
